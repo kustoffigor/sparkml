@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>KMeansModelConverter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JPMML-SparkML</a> &gt; <a href="index.source.html" class="el_package">org.jpmml.sparkml.model</a> &gt; <span class="el_source">KMeansModelConverter.java</span></div><h1>KMeansModelConverter.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2016 Villu Ruusmann
+ *
+ * This file is part of JPMML-SparkML
+ *
+ * JPMML-SparkML is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * JPMML-SparkML is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with JPMML-SparkML.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package org.jpmml.sparkml.model;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import com.google.common.primitives.Doubles;
+import org.apache.spark.ml.clustering.KMeansModel;
+import org.apache.spark.ml.linalg.Vector;
+import org.dmg.pmml.Array;
+import org.dmg.pmml.CompareFunction;
+import org.dmg.pmml.ComparisonMeasure;
+import org.dmg.pmml.FieldName;
+import org.dmg.pmml.MiningFunction;
+import org.dmg.pmml.Output;
+import org.dmg.pmml.SquaredEuclidean;
+import org.dmg.pmml.clustering.Cluster;
+import org.dmg.pmml.clustering.ClusteringField;
+import org.dmg.pmml.clustering.ClusteringModel;
+import org.jpmml.converter.Feature;
+import org.jpmml.converter.ModelUtil;
+import org.jpmml.converter.PMMLUtil;
+import org.jpmml.converter.Schema;
+import org.jpmml.converter.clustering.ClusteringModelUtil;
+import org.jpmml.sparkml.FeatureMapper;
+import org.jpmml.sparkml.ModelConverter;
+
+public class KMeansModelConverter extends ModelConverter&lt;KMeansModel&gt; {
+
+	public KMeansModelConverter(KMeansModel model){
+<span class="fc" id="L49">		super(model);</span>
+<span class="fc" id="L50">	}</span>
+
+	@Override
+	public List&lt;Feature&gt; encodeFeatures(FeatureMapper featureMapper){
+<span class="fc" id="L54">		KMeansModel model = getTransformer();</span>
+
+		// XXX
+<span class="fc" id="L57">		return Collections.emptyList();</span>
+	}
+
+	@Override
+	public MiningFunction getMiningFunction(){
+<span class="nc" id="L62">		return MiningFunction.CLUSTERING;</span>
+	}
+
+	@Override
+	public ClusteringModel encodeModel(Schema schema){
+<span class="fc" id="L67">		KMeansModel model = getTransformer();</span>
+
+<span class="fc" id="L69">		List&lt;Cluster&gt; clusters = new ArrayList&lt;&gt;();</span>
+
+<span class="fc" id="L71">		Vector[] clusterCenters = model.clusterCenters();</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">		for(int i = 0; i &lt; clusterCenters.length; i++){</span>
+<span class="fc" id="L73">			Vector clusterCenter = clusterCenters[i];</span>
+
+<span class="fc" id="L75">			Array array = PMMLUtil.createRealArray(Doubles.asList(clusterCenter.toArray()));</span>
+
+<span class="fc" id="L77">			Cluster cluster = new Cluster()</span>
+<span class="fc" id="L78">				.setId(String.valueOf(i))</span>
+<span class="fc" id="L79">				.setArray(array);</span>
+
+<span class="fc" id="L81">			clusters.add(cluster);</span>
+		}
+
+<span class="fc" id="L84">		List&lt;Feature&gt; features = schema.getFeatures();</span>
+
+<span class="fc" id="L86">		List&lt;ClusteringField&gt; clusteringFields = ClusteringModelUtil.createClusteringFields(features);</span>
+
+<span class="fc" id="L88">		ComparisonMeasure comparisonMeasure = new ComparisonMeasure(ComparisonMeasure.Kind.DISTANCE)</span>
+<span class="fc" id="L89">			.setCompareFunction(CompareFunction.ABS_DIFF)</span>
+<span class="fc" id="L90">			.setMeasure(new SquaredEuclidean());</span>
+
+<span class="fc" id="L92">		Output output = ClusteringModelUtil.createOutput(FieldName.create(&quot;cluster&quot;), Collections.&lt;Cluster&gt;emptyList());</span>
+
+<span class="fc" id="L94">		ClusteringModel clusteringModel = new ClusteringModel(MiningFunction.CLUSTERING, ClusteringModel.ModelClass.CENTER_BASED, clusters.size(), ModelUtil.createMiningSchema(null, schema.getActiveFields()), comparisonMeasure, clusteringFields, clusters)</span>
+<span class="fc" id="L95">			.setOutput(output);</span>
+
+<span class="fc" id="L97">		return clusteringModel;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

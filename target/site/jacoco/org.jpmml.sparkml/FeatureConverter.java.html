@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FeatureConverter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JPMML-SparkML</a> &gt; <a href="index.source.html" class="el_package">org.jpmml.sparkml</a> &gt; <span class="el_source">FeatureConverter.java</span></div><h1>FeatureConverter.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2016 Villu Ruusmann
+ *
+ * This file is part of JPMML-SparkML
+ *
+ * JPMML-SparkML is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * JPMML-SparkML is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with JPMML-SparkML.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package org.jpmml.sparkml;
+
+import org.apache.spark.ml.Transformer;
+import org.apache.spark.ml.param.shared.HasOutputCol;
+import org.dmg.pmml.FieldName;
+
+abstract
+public class FeatureConverter&lt;T extends Transformer&gt; extends TransformerConverter&lt;T&gt; {
+
+	public FeatureConverter(T transformer){
+<span class="fc" id="L29">		super(transformer);</span>
+<span class="fc" id="L30">	}</span>
+
+	static
+	public &lt;T extends Transformer &amp; HasOutputCol&gt; FieldName formatName(T transformer){
+<span class="fc" id="L34">		return FieldName.create(transformer.getOutputCol());</span>
+	}
+
+	static
+	public &lt;T extends Transformer &amp; HasOutputCol&gt; FieldName formatName(T transformer, int index){
+<span class="fc" id="L39">		return FieldName.create(transformer.getOutputCol() + &quot;[&quot; + index + &quot;]&quot;);</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

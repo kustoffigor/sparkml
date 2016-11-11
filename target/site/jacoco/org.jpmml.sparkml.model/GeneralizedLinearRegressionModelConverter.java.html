@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GeneralizedLinearRegressionModelConverter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JPMML-SparkML</a> &gt; <a href="index.source.html" class="el_package">org.jpmml.sparkml.model</a> &gt; <span class="el_source">GeneralizedLinearRegressionModelConverter.java</span></div><h1>GeneralizedLinearRegressionModelConverter.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2016 Villu Ruusmann
+ *
+ * This file is part of JPMML-SparkML
+ *
+ * JPMML-SparkML is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * JPMML-SparkML is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with JPMML-SparkML.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package org.jpmml.sparkml.model;
+
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.apache.spark.ml.linalg.Vector;
+import org.apache.spark.ml.regression.GeneralizedLinearRegressionModel;
+import org.dmg.pmml.FieldName;
+import org.dmg.pmml.MiningFunction;
+import org.dmg.pmml.general_regression.CovariateList;
+import org.dmg.pmml.general_regression.FactorList;
+import org.dmg.pmml.general_regression.GeneralRegressionModel;
+import org.dmg.pmml.general_regression.PCell;
+import org.dmg.pmml.general_regression.PPCell;
+import org.dmg.pmml.general_regression.PPMatrix;
+import org.dmg.pmml.general_regression.ParamMatrix;
+import org.dmg.pmml.general_regression.Parameter;
+import org.dmg.pmml.general_regression.ParameterList;
+import org.dmg.pmml.general_regression.Predictor;
+import org.dmg.pmml.general_regression.PredictorList;
+import org.jpmml.converter.BinaryFeature;
+import org.jpmml.converter.ContinuousFeature;
+import org.jpmml.converter.Feature;
+import org.jpmml.converter.ModelUtil;
+import org.jpmml.converter.Schema;
+import org.jpmml.converter.ValueUtil;
+import org.jpmml.sparkml.RegressionModelConverter;
+
+public class GeneralizedLinearRegressionModelConverter extends RegressionModelConverter&lt;GeneralizedLinearRegressionModel&gt; {
+
+	public GeneralizedLinearRegressionModelConverter(GeneralizedLinearRegressionModel model){
+<span class="fc" id="L51">		super(model);</span>
+<span class="fc" id="L52">	}</span>
+
+	@Override
+	public MiningFunction getMiningFunction(){
+<span class="fc" id="L56">		GeneralizedLinearRegressionModel model = getTransformer();</span>
+
+<span class="fc" id="L58">		String family = model.getFamily();</span>
+<span class="pc bpc" id="L59" title="1 of 6 branches missed.">		switch(family){</span>
+			case &quot;binomial&quot;:
+<span class="fc" id="L61">				return MiningFunction.CLASSIFICATION;</span>
+			default:
+<span class="fc" id="L63">				return MiningFunction.REGRESSION;</span>
+		}
+	}
+
+	@Override
+	public GeneralRegressionModel encodeModel(Schema schema){
+<span class="fc" id="L69">		GeneralizedLinearRegressionModel model = getTransformer();</span>
+
+<span class="fc" id="L71">		double intercept = model.intercept();</span>
+<span class="fc" id="L72">		Vector coefficients = model.coefficients();</span>
+
+<span class="fc" id="L74">		List&lt;Feature&gt; features = schema.getFeatures();</span>
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">		if(features.size() != coefficients.size()){</span>
+<span class="nc" id="L76">			throw new IllegalArgumentException();</span>
+		}
+
+<span class="fc" id="L79">		String targetCategory = null;</span>
+
+<span class="fc" id="L81">		List&lt;String&gt; targetCategories = schema.getTargetCategories();</span>
+<span class="pc bpc" id="L82" title="1 of 4 branches missed.">		if(targetCategories != null &amp;&amp; targetCategories.size() &gt; 0){</span>
+
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">			if(targetCategories.size() != 2){</span>
+<span class="nc" id="L85">				throw new IllegalArgumentException();</span>
+			}
+
+<span class="fc" id="L88">			targetCategory = targetCategories.get(1);</span>
+		}
+
+<span class="fc" id="L91">		ParameterList parameterList = new ParameterList();</span>
+
+<span class="fc" id="L93">		PPMatrix ppMatrix = new PPMatrix();</span>
+
+<span class="fc" id="L95">		ParamMatrix paramMatrix = new ParamMatrix();</span>
+
+<span class="fc bfc" id="L97" title="All 2 branches covered.">		if(!ValueUtil.isZero(intercept)){</span>
+<span class="fc" id="L98">			Parameter parameter = new Parameter(&quot;p0&quot;)</span>
+<span class="fc" id="L99">				.setLabel(&quot;(intercept)&quot;);</span>
+
+<span class="fc" id="L101">			parameterList.addParameters(parameter);</span>
+
+<span class="fc" id="L103">			PCell pCell = new PCell(parameter.getName(), intercept)</span>
+<span class="fc" id="L104">				.setTargetCategory(targetCategory);</span>
+
+<span class="fc" id="L106">			paramMatrix.addPCells(pCell);</span>
+		}
+
+<span class="fc" id="L109">		Set&lt;FieldName&gt; covariates = new LinkedHashSet&lt;&gt;();</span>
+
+<span class="fc" id="L111">		Set&lt;FieldName&gt; factors = new LinkedHashSet&lt;&gt;();</span>
+
+<span class="fc bfc" id="L113" title="All 2 branches covered.">		for(int i = 0; i &lt; features.size(); i++){</span>
+<span class="fc" id="L114">			Feature feature = features.get(i);</span>
+
+<span class="fc" id="L116">			Parameter parameter = new Parameter(&quot;p&quot; + String.valueOf(i + 1));</span>
+
+<span class="fc" id="L118">			parameterList.addParameters(parameter);</span>
+
+			PPCell ppCell;
+
+<span class="fc bfc" id="L122" title="All 2 branches covered.">			if(feature instanceof ContinuousFeature){</span>
+<span class="fc" id="L123">				ContinuousFeature continuousFeature = (ContinuousFeature)feature;</span>
+
+<span class="fc" id="L125">				covariates.add(continuousFeature.getName());</span>
+
+<span class="fc" id="L127">				ppCell = new PPCell(&quot;1&quot;, continuousFeature.getName(), parameter.getName());</span>
+<span class="fc" id="L128">			} else</span>
+
+<span class="pc bpc" id="L130" title="1 of 2 branches missed.">			if(feature instanceof BinaryFeature){</span>
+<span class="fc" id="L131">				BinaryFeature binaryFeature = (BinaryFeature)feature;</span>
+
+<span class="fc" id="L133">				factors.add(binaryFeature.getName());</span>
+
+<span class="fc" id="L135">				ppCell = new PPCell(binaryFeature.getValue(), binaryFeature.getName(), parameter.getName());</span>
+<span class="fc" id="L136">			} else</span>
+
+			{
+<span class="nc" id="L139">				throw new IllegalArgumentException();</span>
+			}
+
+<span class="fc" id="L142">			ppMatrix.addPPCells(ppCell);</span>
+
+<span class="fc" id="L144">			PCell pCell = new PCell(parameter.getName(), coefficients.apply(i))</span>
+<span class="fc" id="L145">				.setTargetCategory(targetCategory);</span>
+
+<span class="fc" id="L147">			paramMatrix.addPCells(pCell);</span>
+		}
+
+<span class="fc bfc" id="L150" title="All 2 branches covered.">		MiningFunction miningFunction = (targetCategory != null ? MiningFunction.CLASSIFICATION : MiningFunction.REGRESSION);</span>
+
+<span class="fc" id="L152">		GeneralRegressionModel generalRegressionModel = new GeneralRegressionModel(GeneralRegressionModel.ModelType.GENERALIZED_LINEAR, miningFunction, ModelUtil.createMiningSchema(schema), parameterList, ppMatrix, paramMatrix)</span>
+<span class="fc" id="L153">			.setDistribution(parseFamily(model.getFamily()))</span>
+<span class="fc" id="L154">			.setLinkFunction(parseLink(model.getLink()))</span>
+<span class="fc" id="L155">			.setCovariateList(createPredictorList(new CovariateList(), covariates))</span>
+<span class="fc" id="L156">			.setFactorList(createPredictorList(new FactorList(), factors));</span>
+
+<span class="pc bfc" id="L158" title="All 2 branches covered.">		switch(miningFunction){</span>
+			case CLASSIFICATION:
+<span class="fc" id="L160">				generalRegressionModel.setOutput(ModelUtil.createProbabilityOutput(schema));</span>
+<span class="fc" id="L161">				break;</span>
+			default:
+				break;
+		}
+
+<span class="fc" id="L166">		return generalRegressionModel;</span>
+	}
+
+	static
+	private GeneralRegressionModel.Distribution parseFamily(String family){
+
+<span class="pc bpc" id="L172" title="12 of 18 branches missed.">		switch(family){</span>
+			case &quot;binomial&quot;:
+<span class="fc" id="L174">				return GeneralRegressionModel.Distribution.BINOMIAL;</span>
+			case &quot;gamma&quot;:
+<span class="nc" id="L176">				return GeneralRegressionModel.Distribution.GAMMA;</span>
+			case &quot;gaussian&quot;:
+<span class="fc" id="L178">				return GeneralRegressionModel.Distribution.NORMAL;</span>
+			case &quot;poisson&quot;:
+<span class="nc" id="L180">				return GeneralRegressionModel.Distribution.POISSON;</span>
+			default:
+<span class="nc" id="L182">				throw new IllegalArgumentException(family);</span>
+		}
+	}
+
+	static
+	private GeneralRegressionModel.LinkFunction parseLink(String link){
+
+<span class="pc bpc" id="L189" title="16 of 22 branches missed.">		switch(link){</span>
+			case &quot;cloglog&quot;:
+<span class="nc" id="L191">				return GeneralRegressionModel.LinkFunction.CLOGLOG;</span>
+			case &quot;identity&quot;:
+<span class="fc" id="L193">				return GeneralRegressionModel.LinkFunction.IDENTITY;</span>
+			case &quot;log&quot;:
+<span class="nc" id="L195">				return GeneralRegressionModel.LinkFunction.LOG;</span>
+			case &quot;logit&quot;:
+<span class="fc" id="L197">				return GeneralRegressionModel.LinkFunction.LOGIT;</span>
+			case &quot;probit&quot;:
+<span class="nc" id="L199">				return GeneralRegressionModel.LinkFunction.PROBIT;</span>
+			default:
+<span class="nc" id="L201">				throw new IllegalArgumentException(link);</span>
+		}
+	}
+
+	static
+	private &lt;L extends PredictorList&gt; L createPredictorList(L predictorList, Set&lt;FieldName&gt; names){
+
+<span class="fc bfc" id="L208" title="All 2 branches covered.">		if(names.isEmpty()){</span>
+<span class="fc" id="L209">			return null;</span>
+		}
+
+<span class="fc" id="L212">		List&lt;Predictor&gt; predictors = predictorList.getPredictors();</span>
+
+<span class="fc bfc" id="L214" title="All 2 branches covered.">		for(FieldName name : names){</span>
+<span class="fc" id="L215">			Predictor predictor = new Predictor(name);</span>
+
+<span class="fc" id="L217">			predictors.add(predictor);</span>
+<span class="fc" id="L218">		}</span>
+
+<span class="fc" id="L220">		return predictorList;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

@@ -1,0 +1,5 @@
+org/jpmml/sparkml/ClusteringTest.class
+org/jpmml/sparkml/ConverterTest.class
+org/jpmml/sparkml/RegressionTest.class
+org/jpmml/sparkml/ClassificationTest.class
+org/jpmml/sparkml/ConverterTest$1.class

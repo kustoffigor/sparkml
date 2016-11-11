@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FeatureMapper.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JPMML-SparkML</a> &gt; <a href="index.source.html" class="el_package">org.jpmml.sparkml</a> &gt; <span class="el_source">FeatureMapper.java</span></div><h1>FeatureMapper.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2016 Villu Ruusmann
+ *
+ * This file is part of JPMML-SparkML
+ *
+ * JPMML-SparkML is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * JPMML-SparkML is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with JPMML-SparkML.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package org.jpmml.sparkml;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.google.common.collect.Iterables;
+import org.apache.spark.ml.Model;
+import org.apache.spark.ml.PredictionModel;
+import org.apache.spark.ml.Transformer;
+import org.apache.spark.ml.clustering.KMeansModel;
+import org.apache.spark.ml.param.shared.HasFeaturesCol;
+import org.apache.spark.ml.param.shared.HasLabelCol;
+import org.apache.spark.ml.param.shared.HasOutputCol;
+import org.apache.spark.ml.param.shared.HasPredictionCol;
+import org.apache.spark.sql.types.BooleanType;
+import org.apache.spark.sql.types.DoubleType;
+import org.apache.spark.sql.types.IntegralType;
+import org.apache.spark.sql.types.StringType;
+import org.apache.spark.sql.types.StructField;
+import org.apache.spark.sql.types.StructType;
+import org.dmg.pmml.DataField;
+import org.dmg.pmml.DataType;
+import org.dmg.pmml.FieldName;
+import org.dmg.pmml.MiningFunction;
+import org.dmg.pmml.OpType;
+import org.dmg.pmml.Value;
+import org.jpmml.converter.ContinuousFeature;
+import org.jpmml.converter.Feature;
+import org.jpmml.converter.ListFeature;
+import org.jpmml.converter.PMMLMapper;
+import org.jpmml.converter.PMMLUtil;
+import org.jpmml.converter.Schema;
+import org.jpmml.converter.WildcardFeature;
+
+public class FeatureMapper extends PMMLMapper {
+
+<span class="fc" id="L59">	private StructType schema = null;</span>
+
+<span class="fc" id="L61">	private Map&lt;String, List&lt;Feature&gt;&gt; columnFeatures = new LinkedHashMap&lt;&gt;();</span>
+
+
+<span class="fc" id="L64">	public FeatureMapper(StructType schema){</span>
+<span class="fc" id="L65">		this.schema = schema;</span>
+<span class="fc" id="L66">	}</span>
+
+	public void append(FeatureConverter&lt;?&gt; featureConverter){
+<span class="fc" id="L69">		Transformer transformer = featureConverter.getTransformer();</span>
+
+<span class="fc" id="L71">		List&lt;Feature&gt; features = featureConverter.encodeFeatures(this);</span>
+
+<span class="fc bfc" id="L73" title="All 2 branches covered.">		if(transformer instanceof HasOutputCol){</span>
+<span class="fc" id="L74">			HasOutputCol hasOutputCol = (HasOutputCol)transformer;</span>
+
+<span class="fc" id="L76">			String outputCol = hasOutputCol.getOutputCol();</span>
+
+<span class="fc" id="L78">			putFeatures(outputCol, features);</span>
+		}
+<span class="fc" id="L80">	}</span>
+
+	public void append(ModelConverter&lt;?&gt; modelConverter){
+<span class="fc" id="L83">		Model&lt;?&gt; model = modelConverter.getTransformer();</span>
+
+<span class="fc" id="L85">		List&lt;Feature&gt; features = modelConverter.encodeFeatures(this);</span>
+
+<span class="pc bpc" id="L87" title="1 of 2 branches missed.">		if(model instanceof HasPredictionCol){</span>
+<span class="fc" id="L88">			HasPredictionCol hasPredictionCol = (HasPredictionCol)model;</span>
+
+<span class="fc" id="L90">			String predictionCol = hasPredictionCol.getPredictionCol();</span>
+
+<span class="fc" id="L92">			putFeatures(predictionCol, features);</span>
+		}
+<span class="fc" id="L94">	}</span>
+
+	public Schema createSchema(ModelConverter&lt;?&gt; modelConverter){
+		FieldName targetField;
+<span class="fc" id="L98">		List&lt;String&gt; targetCategories = null;</span>
+
+<span class="fc" id="L100">		Model&lt;?&gt; model = modelConverter.getTransformer();</span>
+
+<span class="fc bfc" id="L102" title="All 2 branches covered.">		if(model instanceof PredictionModel){</span>
+<span class="fc" id="L103">			HasLabelCol hasLabelCol = (HasLabelCol)model;</span>
+
+<span class="fc" id="L105">			Feature feature = getOnlyFeature(hasLabelCol.getLabelCol());</span>
+
+<span class="fc" id="L107">			targetField = feature.getName();</span>
+
+<span class="fc" id="L109">			MiningFunction miningFunction = modelConverter.getMiningFunction();</span>
+<span class="pc bpc" id="L110" title="1 of 3 branches missed.">			switch(miningFunction){</span>
+				case CLASSIFICATION:
+					{
+<span class="pc bpc" id="L113" title="1 of 2 branches missed.">						if(feature instanceof ListFeature){</span>
+<span class="fc" id="L114">							ListFeature listFeature = (ListFeature)feature;</span>
+
+<span class="fc" id="L116">							targetCategories = listFeature.getValues();</span>
+<span class="fc" id="L117">						} else</span>
+
+						{
+<span class="nc" id="L120">							ContinuousFeature continuousFeature = (ContinuousFeature)feature;</span>
+
+							// XXX
+<span class="nc" id="L123">							targetCategories = Arrays.asList(&quot;0&quot;, &quot;1&quot;);</span>
+
+<span class="nc" id="L125">							DataField dataField = toCategorical(targetField, targetCategories);</span>
+
+<span class="nc" id="L127">							ListFeature listFeature = new ListFeature(dataField, targetCategories);</span>
+
+<span class="nc" id="L129">							this.columnFeatures.put(hasLabelCol.getLabelCol(), Collections.&lt;Feature&gt;singletonList(listFeature));</span>
+						}
+					}
+<span class="nc" id="L132">					break;</span>
+				case REGRESSION:
+					{
+<span class="fc" id="L135">						DataField dataField = toContinuous(targetField);</span>
+
+<span class="fc" id="L137">						dataField.setDataType(DataType.DOUBLE);</span>
+					}
+<span class="fc" id="L139">					break;</span>
+				default:
+					break;
+			}
+<span class="fc" id="L143">		} else</span>
+
+<span class="pc bpc" id="L145" title="1 of 2 branches missed.">		if(model instanceof KMeansModel){</span>
+<span class="fc" id="L146">			targetField = null;</span>
+		} else
+
+		{
+<span class="nc" id="L150">			throw new IllegalArgumentException();</span>
+		}
+
+<span class="fc" id="L153">		Map&lt;FieldName, DataField&gt; dataFields = getDataFields();</span>
+
+<span class="fc" id="L155">		List&lt;FieldName&gt; activeFields = new ArrayList&lt;&gt;(dataFields.keySet());</span>
+
+<span class="fc bfc" id="L157" title="All 2 branches covered.">		if(targetField != null){</span>
+<span class="fc" id="L158">			activeFields.remove(targetField);</span>
+		}
+
+<span class="fc" id="L161">		HasFeaturesCol hasFeaturesCol = (HasFeaturesCol)model;</span>
+
+<span class="fc" id="L163">		List&lt;Feature&gt; features = getFeatures(hasFeaturesCol.getFeaturesCol());</span>
+
+<span class="fc bfc" id="L165" title="All 2 branches covered.">		if(model instanceof PredictionModel){</span>
+<span class="fc" id="L166">			PredictionModel&lt;?, ?&gt; predictionModel = (PredictionModel&lt;?, ?&gt;)model;</span>
+
+<span class="fc" id="L168">			int numFeatures = predictionModel.numFeatures();</span>
+<span class="pc bpc" id="L169" title="1 of 4 branches missed.">			if(numFeatures != -1 &amp;&amp; features.size() != numFeatures){</span>
+<span class="nc" id="L170">				throw new IllegalArgumentException(&quot;Expected &quot; + numFeatures + &quot; features, got &quot; + features.size() + &quot; features&quot;);</span>
+			}
+		}
+
+<span class="fc" id="L174">		Schema result = new Schema(targetField, targetCategories, activeFields, features);</span>
+
+<span class="fc" id="L176">		return result;</span>
+	}
+
+	public DataField toContinuous(FieldName name){
+<span class="fc" id="L180">		DataField dataField = getDataField(name);</span>
+
+<span class="pc bpc" id="L182" title="1 of 2 branches missed.">		if(dataField == null){</span>
+<span class="nc" id="L183">			throw new IllegalArgumentException();</span>
+		}
+
+<span class="fc" id="L186">		dataField.setOpType(OpType.CONTINUOUS);</span>
+
+<span class="fc" id="L188">		return dataField;</span>
+	}
+
+	public DataField toCategorical(FieldName name, List&lt;String&gt; categories){
+<span class="fc" id="L192">		DataField dataField = getDataField(name);</span>
+
+<span class="pc bpc" id="L194" title="1 of 2 branches missed.">		if(dataField == null){</span>
+<span class="nc" id="L195">			throw new IllegalArgumentException();</span>
+		}
+
+<span class="fc" id="L198">		dataField.setOpType(OpType.CATEGORICAL);</span>
+
+<span class="fc" id="L200">		List&lt;Value&gt; values = dataField.getValues();</span>
+<span class="pc bpc" id="L201" title="1 of 2 branches missed.">		if(values.size() &gt; 0){</span>
+<span class="nc" id="L202">			throw new IllegalArgumentException();</span>
+		}
+
+<span class="fc" id="L205">		values.addAll(PMMLUtil.createValues(categories));</span>
+
+<span class="fc" id="L207">		return dataField;</span>
+	}
+
+	public boolean hasFeatures(String column){
+<span class="fc" id="L211">		return this.columnFeatures.containsKey(column);</span>
+	}
+
+	public Feature getOnlyFeature(String column){
+<span class="fc" id="L215">		List&lt;Feature&gt; features = getFeatures(column);</span>
+
+<span class="fc" id="L217">		return Iterables.getOnlyElement(features);</span>
+	}
+
+	public List&lt;Feature&gt; getFeatures(String column){
+<span class="fc" id="L221">		List&lt;Feature&gt; features = this.columnFeatures.get(column);</span>
+
+<span class="fc bfc" id="L223" title="All 2 branches covered.">		if(features == null){</span>
+<span class="fc" id="L224">			FieldName name = FieldName.create(column);</span>
+
+<span class="fc" id="L226">			DataField dataField = getDataField(name);</span>
+<span class="pc bpc" id="L227" title="1 of 2 branches missed.">			if(dataField == null){</span>
+<span class="fc" id="L228">				dataField = createDataField(name);</span>
+			}
+
+			Feature feature;
+
+<span class="fc" id="L233">			DataType dataType = dataField.getDataType();</span>
+<span class="pc bpc" id="L234" title="1 of 4 branches missed.">			switch(dataType){</span>
+				case STRING:
+<span class="fc" id="L236">					feature = new WildcardFeature(dataField);</span>
+<span class="fc" id="L237">					break;</span>
+				case INTEGER:
+				case DOUBLE:
+<span class="fc" id="L240">					feature = new ContinuousFeature(dataField);</span>
+<span class="fc" id="L241">					break;</span>
+				case BOOLEAN:
+<span class="fc" id="L243">					feature = new BooleanFeature(dataField);</span>
+<span class="fc" id="L244">					break;</span>
+				default:
+<span class="nc" id="L246">					throw new IllegalArgumentException();</span>
+			}
+
+<span class="fc" id="L249">			return Collections.singletonList(feature);</span>
+		}
+
+<span class="fc" id="L252">		return features;</span>
+	}
+
+	public List&lt;Feature&gt; getFeatures(String column, int[] indices){
+<span class="fc" id="L256">		List&lt;Feature&gt; features = getFeatures(column);</span>
+
+<span class="fc" id="L258">		List&lt;Feature&gt; result = new ArrayList&lt;&gt;();</span>
+
+<span class="fc bfc" id="L260" title="All 2 branches covered.">		for(int i = 0; i &lt; indices.length; i++){</span>
+<span class="fc" id="L261">			int index = indices[i];</span>
+
+<span class="fc" id="L263">			Feature feature = features.get(index);</span>
+
+<span class="fc" id="L265">			result.add(feature);</span>
+		}
+
+<span class="fc" id="L268">		return result;</span>
+	}
+
+	public void putFeatures(String column, List&lt;Feature&gt; features){
+<span class="fc" id="L272">		checkColumn(column);</span>
+
+<span class="fc" id="L274">		this.columnFeatures.put(column, features);</span>
+<span class="fc" id="L275">	}</span>
+
+	public DataField createDataField(FieldName name){
+<span class="fc" id="L278">		StructField field = this.schema.apply(name.getValue());</span>
+
+<span class="fc" id="L280">		org.apache.spark.sql.types.DataType sparkDataType = field.dataType();</span>
+
+<span class="fc bfc" id="L282" title="All 2 branches covered.">		if(sparkDataType instanceof StringType){</span>
+<span class="fc" id="L283">			return createDataField(name, OpType.CATEGORICAL, DataType.STRING);</span>
+		} else
+
+<span class="fc bfc" id="L286" title="All 2 branches covered.">		if(sparkDataType instanceof IntegralType){</span>
+<span class="fc" id="L287">			return createDataField(name, OpType.CONTINUOUS, DataType.INTEGER);</span>
+		} else
+
+<span class="fc bfc" id="L290" title="All 2 branches covered.">		if(sparkDataType instanceof DoubleType){</span>
+<span class="fc" id="L291">			return createDataField(name, OpType.CONTINUOUS, DataType.DOUBLE);</span>
+		} else
+
+<span class="pc bpc" id="L294" title="1 of 2 branches missed.">		if(sparkDataType instanceof BooleanType){</span>
+<span class="fc" id="L295">			return createDataField(name, OpType.CATEGORICAL, DataType.BOOLEAN);</span>
+		} else
+
+		{
+<span class="nc" id="L299">			throw new IllegalArgumentException(&quot;Expected string, integral, double or boolean type, got &quot; + sparkDataType.typeName() + &quot; type&quot;);</span>
+		}
+	}
+
+	public void removeDataField(FieldName name){
+<span class="fc" id="L304">		Map&lt;FieldName, DataField&gt; dataFields = getDataFields();</span>
+
+<span class="fc" id="L306">		DataField dataField = dataFields.remove(name);</span>
+<span class="pc bpc" id="L307" title="1 of 2 branches missed.">		if(dataField == null){</span>
+<span class="nc" id="L308">			throw new IllegalArgumentException();</span>
+		}
+<span class="fc" id="L310">	}</span>
+
+	private void checkColumn(String column){
+<span class="fc" id="L313">		List&lt;Feature&gt; features = this.columnFeatures.get(column);</span>
+
+<span class="pc bpc" id="L315" title="3 of 4 branches missed.">		if(features != null &amp;&amp; features.size() &gt; 0){</span>
+<span class="nc" id="L316">			Feature feature = Iterables.getOnlyElement(features);</span>
+
+<span class="nc bnc" id="L318" title="All 2 branches missed.">			if(!(feature instanceof WildcardFeature)){</span>
+<span class="nc" id="L319">				throw new IllegalArgumentException(column);</span>
+			}
+		}
+<span class="fc" id="L322">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

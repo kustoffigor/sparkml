@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TreeModelUtil.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JPMML-SparkML</a> &gt; <a href="index.source.html" class="el_package">org.jpmml.sparkml.model</a> &gt; <span class="el_source">TreeModelUtil.java</span></div><h1>TreeModelUtil.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2016 Villu Ruusmann
+ *
+ * This file is part of JPMML-SparkML
+ *
+ * JPMML-SparkML is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * JPMML-SparkML is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with JPMML-SparkML.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package org.jpmml.sparkml.model;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.spark.ml.classification.DecisionTreeClassificationModel;
+import org.apache.spark.ml.regression.DecisionTreeRegressionModel;
+import org.apache.spark.ml.tree.CategoricalSplit;
+import org.apache.spark.ml.tree.ContinuousSplit;
+import org.apache.spark.ml.tree.DecisionTreeModel;
+import org.apache.spark.ml.tree.InternalNode;
+import org.apache.spark.ml.tree.LeafNode;
+import org.apache.spark.ml.tree.Split;
+import org.apache.spark.ml.tree.TreeEnsembleModel;
+import org.apache.spark.mllib.tree.impurity.ImpurityCalculator;
+import org.dmg.pmml.Array;
+import org.dmg.pmml.MiningFunction;
+import org.dmg.pmml.Predicate;
+import org.dmg.pmml.ScoreDistribution;
+import org.dmg.pmml.SimplePredicate;
+import org.dmg.pmml.SimpleSetPredicate;
+import org.dmg.pmml.Targets;
+import org.dmg.pmml.True;
+import org.dmg.pmml.tree.Node;
+import org.dmg.pmml.tree.TreeModel;
+import org.jpmml.converter.BinaryFeature;
+import org.jpmml.converter.ContinuousFeature;
+import org.jpmml.converter.Feature;
+import org.jpmml.converter.ListFeature;
+import org.jpmml.converter.ModelUtil;
+import org.jpmml.converter.Schema;
+import org.jpmml.converter.ValueUtil;
+import org.jpmml.sparkml.BooleanFeature;
+
+public class TreeModelUtil {
+
+<span class="nc" id="L56">	private TreeModelUtil(){</span>
+<span class="nc" id="L57">	}</span>
+
+	static
+	public TreeModel encodeDecisionTree(DecisionTreeModel model, Schema schema){
+<span class="fc" id="L61">		org.apache.spark.ml.tree.Node node = model.rootNode();</span>
+
+<span class="fc bfc" id="L63" title="All 2 branches covered.">		if(model instanceof DecisionTreeRegressionModel){</span>
+<span class="fc" id="L64">			return encodeTreeModel(MiningFunction.REGRESSION, node, schema);</span>
+		} else
+
+<span class="pc bpc" id="L67" title="1 of 2 branches missed.">		if(model instanceof DecisionTreeClassificationModel){</span>
+<span class="fc" id="L68">			return encodeTreeModel(MiningFunction.CLASSIFICATION, node, schema);</span>
+		}
+
+<span class="nc" id="L71">		throw new IllegalArgumentException();</span>
+	}
+
+	static
+	public List&lt;TreeModel&gt; encodeDecisionTreeEnsemble(TreeEnsembleModel&lt;?&gt; model, Schema schema){
+<span class="fc" id="L76">		return encodeDecisionTreeEnsemble(model, null, schema);</span>
+	}
+
+	static
+	public List&lt;TreeModel&gt; encodeDecisionTreeEnsemble(TreeEnsembleModel&lt;?&gt; model, double[] weights, Schema schema){
+<span class="fc" id="L81">		Schema segmentSchema = schema.toAnonymousSchema();</span>
+
+<span class="fc" id="L83">		List&lt;TreeModel&gt; treeModels = new ArrayList&lt;&gt;();</span>
+
+<span class="fc" id="L85">		DecisionTreeModel[] trees = model.trees();</span>
+<span class="fc bfc" id="L86" title="All 2 branches covered.">		for(int i = 0; i &lt; trees.length; i++){</span>
+<span class="fc" id="L87">			DecisionTreeModel tree = trees[i];</span>
+<span class="fc bfc" id="L88" title="All 2 branches covered.">			Double weight = (weights != null ? weights[i] : null);</span>
+
+<span class="fc" id="L90">			TreeModel treeModel = encodeDecisionTree(tree, segmentSchema);</span>
+
+<span class="fc bfc" id="L92" title="All 4 branches covered.">			if(weight != null &amp;&amp; !ValueUtil.isOne(weight)){</span>
+<span class="fc" id="L93">				Targets targets = new Targets()</span>
+<span class="fc" id="L94">					.addTargets(ModelUtil.createRescaleTarget(segmentSchema.getTargetField(), weight, null));</span>
+
+<span class="fc" id="L96">				treeModel.setTargets(targets);</span>
+			}
+
+<span class="fc" id="L99">			treeModels.add(treeModel);</span>
+		}
+
+<span class="fc" id="L102">		return treeModels;</span>
+	}
+
+	static
+	public TreeModel encodeTreeModel(MiningFunction miningFunction, org.apache.spark.ml.tree.Node node, Schema schema){
+<span class="fc" id="L107">		Node root = encodeNode(miningFunction, node, schema)</span>
+<span class="fc" id="L108">			.setPredicate(new True());</span>
+
+<span class="fc" id="L110">		TreeModel treeModel = new TreeModel(miningFunction, ModelUtil.createMiningSchema(schema), root)</span>
+<span class="fc" id="L111">			.setSplitCharacteristic(TreeModel.SplitCharacteristic.BINARY_SPLIT);</span>
+
+<span class="fc" id="L113">		return treeModel;</span>
+	}
+
+	static
+	public Node encodeNode(MiningFunction miningFunction, org.apache.spark.ml.tree.Node node, Schema schema){
+
+<span class="fc bfc" id="L119" title="All 2 branches covered.">		if(node instanceof InternalNode){</span>
+<span class="fc" id="L120">			return encodeInternalNode(miningFunction, (InternalNode)node, schema);</span>
+		} else
+
+<span class="pc bpc" id="L123" title="1 of 2 branches missed.">		if(node instanceof LeafNode){</span>
+<span class="fc" id="L124">			return encodeLeafNode(miningFunction, (LeafNode)node, schema);</span>
+		}
+
+<span class="nc" id="L127">		throw new IllegalArgumentException();</span>
+	}
+
+	static
+	private Node encodeInternalNode(MiningFunction miningFunction, InternalNode internalNode, Schema schema){
+<span class="fc" id="L132">		Node result = createNode(miningFunction, internalNode, schema);</span>
+
+<span class="fc" id="L134">		Predicate[] predicates = encodeSplit(internalNode.split(), schema);</span>
+
+<span class="fc" id="L136">		Node leftChild = encodeNode(miningFunction, internalNode.leftChild(), schema)</span>
+<span class="fc" id="L137">			.setPredicate(predicates[0]);</span>
+
+<span class="fc" id="L139">		Node rightChild = encodeNode(miningFunction, internalNode.rightChild(), schema)</span>
+<span class="fc" id="L140">			.setPredicate(predicates[1]);</span>
+
+<span class="fc" id="L142">		result.addNodes(leftChild, rightChild);</span>
+
+<span class="fc" id="L144">		return result;</span>
+	}
+
+	static
+	private Node encodeLeafNode(MiningFunction miningFunction, LeafNode leafNode, Schema schema){
+<span class="fc" id="L149">		Node result = createNode(miningFunction, leafNode, schema);</span>
+
+<span class="fc" id="L151">		return result;</span>
+	}
+
+	static
+	private Node createNode(MiningFunction miningFunction, org.apache.spark.ml.tree.Node node, Schema schema){
+<span class="fc" id="L156">		Node result = new Node();</span>
+
+<span class="pc bpc" id="L158" title="1 of 3 branches missed.">		switch(miningFunction){</span>
+			case REGRESSION:
+				{
+<span class="fc" id="L161">					String score = ValueUtil.formatValue(node.prediction());</span>
+
+<span class="fc" id="L163">					result.setScore(score);</span>
+				}
+<span class="fc" id="L165">				break;</span>
+			case CLASSIFICATION:
+				{
+<span class="fc" id="L168">					List&lt;String&gt; targetCategories = schema.getTargetCategories();</span>
+<span class="pc bpc" id="L169" title="1 of 2 branches missed.">					if(targetCategories == null){</span>
+<span class="nc" id="L170">						throw new IllegalArgumentException();</span>
+					}
+
+<span class="fc" id="L173">					int index = ValueUtil.asInt(node.prediction());</span>
+
+<span class="fc" id="L175">					result.setScore(targetCategories.get(index));</span>
+
+<span class="fc" id="L177">					ImpurityCalculator impurityCalculator = node.impurityStats();</span>
+
+<span class="fc" id="L179">					result.setRecordCount((double)impurityCalculator.count());</span>
+
+<span class="fc" id="L181">					double[] stats = impurityCalculator.stats();</span>
+<span class="fc bfc" id="L182" title="All 2 branches covered.">					for(int i = 0; i &lt; stats.length; i++){</span>
+
+<span class="fc bfc" id="L184" title="All 2 branches covered.">						if(stats[i] == 0d){</span>
+<span class="fc" id="L185">							continue;</span>
+						}
+
+<span class="fc" id="L188">						ScoreDistribution scoreDistribution = new ScoreDistribution(targetCategories.get(i), stats[i]);</span>
+
+<span class="fc" id="L190">						result.addScoreDistributions(scoreDistribution);</span>
+					}
+				}
+<span class="fc" id="L193">				break;</span>
+			default:
+<span class="nc" id="L195">				throw new UnsupportedOperationException();</span>
+		}
+
+<span class="fc" id="L198">		return result;</span>
+	}
+
+	static
+	private Predicate[] encodeSplit(Split split, Schema schema){
+
+<span class="fc bfc" id="L204" title="All 2 branches covered.">		if(split instanceof ContinuousSplit){</span>
+<span class="fc" id="L205">			return encodeContinuousSplit((ContinuousSplit)split, schema);</span>
+		} else
+
+<span class="pc bpc" id="L208" title="1 of 2 branches missed.">		if(split instanceof CategoricalSplit){</span>
+<span class="fc" id="L209">			return encodeCategoricalSplit((CategoricalSplit)split, schema);</span>
+		}
+
+<span class="nc" id="L212">		throw new IllegalArgumentException();</span>
+	}
+
+	static
+	private Predicate[] encodeContinuousSplit(ContinuousSplit continuousSplit, Schema schema){
+<span class="fc" id="L217">		ContinuousFeature feature = (ContinuousFeature)schema.getFeature(continuousSplit.featureIndex());</span>
+
+<span class="fc" id="L219">		double threshold = continuousSplit.threshold();</span>
+
+<span class="fc bfc" id="L221" title="All 2 branches covered.">		if(feature instanceof BooleanFeature){</span>
+<span class="fc" id="L222">			BooleanFeature booleanFeature = (BooleanFeature)feature;</span>
+
+<span class="pc bpc" id="L224" title="1 of 2 branches missed.">			if(threshold != 0d){</span>
+<span class="nc" id="L225">				throw new IllegalArgumentException();</span>
+			}
+
+<span class="fc" id="L228">			SimplePredicate leftPredicate = new SimplePredicate(feature.getName(), SimplePredicate.Operator.EQUAL)</span>
+<span class="fc" id="L229">				.setValue(booleanFeature.getValue(0));</span>
+
+<span class="fc" id="L231">			SimplePredicate rightPredicate = new SimplePredicate(feature.getName(), SimplePredicate.Operator.EQUAL)</span>
+<span class="fc" id="L232">				.setValue(booleanFeature.getValue(1));</span>
+
+<span class="fc" id="L234">			return new Predicate[]{leftPredicate, rightPredicate};</span>
+		} else
+
+		{
+<span class="fc" id="L238">			String value = ValueUtil.formatValue(threshold);</span>
+
+<span class="fc" id="L240">			SimplePredicate leftPredicate = new SimplePredicate(feature.getName(), SimplePredicate.Operator.LESS_OR_EQUAL)</span>
+<span class="fc" id="L241">				.setValue(value);</span>
+
+<span class="fc" id="L243">			SimplePredicate rightPredicate = new SimplePredicate(feature.getName(), SimplePredicate.Operator.GREATER_THAN)</span>
+<span class="fc" id="L244">				.setValue(value);</span>
+
+<span class="fc" id="L246">			return new Predicate[]{leftPredicate, rightPredicate};</span>
+		}
+	}
+
+	static
+	private Predicate[] encodeCategoricalSplit(CategoricalSplit categoricalSplit, Schema schema){
+<span class="fc" id="L252">		Feature feature = schema.getFeature(categoricalSplit.featureIndex());</span>
+
+<span class="fc" id="L254">		double[] leftCategories = categoricalSplit.leftCategories();</span>
+<span class="fc" id="L255">		double[] rightCategories = categoricalSplit.rightCategories();</span>
+
+<span class="fc bfc" id="L257" title="All 2 branches covered.">		if(feature instanceof ListFeature){</span>
+<span class="fc" id="L258">			ListFeature listFeature = (ListFeature)feature;</span>
+
+<span class="fc" id="L260">			List&lt;String&gt; values = listFeature.getValues();</span>
+<span class="pc bpc" id="L261" title="1 of 2 branches missed.">			if(values.size() != (leftCategories.length + rightCategories.length)){</span>
+<span class="nc" id="L262">				throw new IllegalArgumentException();</span>
+			}
+
+<span class="fc" id="L265">			Predicate leftPredicate = createCategoricalPredicate(listFeature, leftCategories);</span>
+
+<span class="fc" id="L267">			Predicate rightPredicate = createCategoricalPredicate(listFeature, rightCategories);</span>
+
+<span class="fc" id="L269">			return new Predicate[]{leftPredicate, rightPredicate};</span>
+		} else
+
+<span class="pc bpc" id="L272" title="1 of 2 branches missed.">		if(feature instanceof BinaryFeature){</span>
+<span class="fc" id="L273">			BinaryFeature binaryFeature = (BinaryFeature)feature;</span>
+
+			SimplePredicate.Operator leftOperator;
+			SimplePredicate.Operator rightOperator;
+
+<span class="pc bpc" id="L278" title="1 of 4 branches missed.">			if(Arrays.equals(TRUE, leftCategories) &amp;&amp; Arrays.equals(FALSE, rightCategories)){</span>
+<span class="fc" id="L279">				leftOperator = SimplePredicate.Operator.EQUAL;</span>
+<span class="fc" id="L280">				rightOperator = SimplePredicate.Operator.NOT_EQUAL;</span>
+			} else
+
+<span class="pc bpc" id="L283" title="2 of 4 branches missed.">			if(Arrays.equals(FALSE, leftCategories) &amp;&amp; Arrays.equals(TRUE, rightCategories)){</span>
+<span class="fc" id="L284">				leftOperator = SimplePredicate.Operator.NOT_EQUAL;</span>
+<span class="fc" id="L285">				rightOperator = SimplePredicate.Operator.EQUAL;</span>
+			} else
+
+			{
+<span class="nc" id="L289">				throw new IllegalArgumentException();</span>
+			}
+
+<span class="fc" id="L292">			String value = ValueUtil.formatValue(binaryFeature.getValue());</span>
+
+<span class="fc" id="L294">			SimplePredicate leftPredicate = new SimplePredicate(binaryFeature.getName(), leftOperator)</span>
+<span class="fc" id="L295">				.setValue(value);</span>
+
+<span class="fc" id="L297">			SimplePredicate rightPredicate = new SimplePredicate(binaryFeature.getName(), rightOperator)</span>
+<span class="fc" id="L298">				.setValue(value);</span>
+
+<span class="fc" id="L300">			return new Predicate[]{leftPredicate, rightPredicate};</span>
+		}
+
+<span class="nc" id="L303">		throw new IllegalArgumentException();</span>
+	}
+
+	static
+	private Predicate createCategoricalPredicate(ListFeature listFeature, double[] categories){
+<span class="fc" id="L308">		List&lt;String&gt; values = new ArrayList&lt;&gt;();</span>
+
+<span class="fc bfc" id="L310" title="All 2 branches covered.">		for(int i = 0; i &lt; categories.length; i++){</span>
+<span class="fc" id="L311">			int index = ValueUtil.asInt(categories[i]);</span>
+
+<span class="fc" id="L313">			String value = listFeature.getValue(index);</span>
+
+<span class="fc" id="L315">			values.add(value);</span>
+		}
+
+<span class="fc bfc" id="L318" title="All 2 branches covered.">		if(values.size() == 1){</span>
+<span class="fc" id="L319">			String value = values.get(0);</span>
+
+<span class="fc" id="L321">			SimplePredicate simplePredicate = new SimplePredicate()</span>
+<span class="fc" id="L322">				.setField(listFeature.getName())</span>
+<span class="fc" id="L323">				.setOperator(SimplePredicate.Operator.EQUAL)</span>
+<span class="fc" id="L324">				.setValue(value);</span>
+
+<span class="fc" id="L326">			return simplePredicate;</span>
+		} else
+
+		{
+<span class="fc" id="L330">			Array array = new Array(Array.Type.INT, ValueUtil.formatArrayValue(values));</span>
+
+<span class="fc" id="L332">			SimpleSetPredicate simpleSetPredicate = new SimpleSetPredicate()</span>
+<span class="fc" id="L333">				.setField(listFeature.getName())</span>
+<span class="fc" id="L334">				.setBooleanOperator(SimpleSetPredicate.BooleanOperator.IS_IN)</span>
+<span class="fc" id="L335">				.setArray(array);</span>
+
+<span class="fc" id="L337">			return simpleSetPredicate;</span>
+		}
+	}
+
+<span class="fc" id="L341">	private static final double[] TRUE = {1.0d};</span>
+<span class="fc" id="L342">	private static final double[] FALSE = {0.0d};</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

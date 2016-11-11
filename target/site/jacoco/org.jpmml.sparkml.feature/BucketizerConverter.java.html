@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BucketizerConverter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JPMML-SparkML</a> &gt; <a href="index.source.html" class="el_package">org.jpmml.sparkml.feature</a> &gt; <span class="el_source">BucketizerConverter.java</span></div><h1>BucketizerConverter.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2016 Villu Ruusmann
+ *
+ * This file is part of JPMML-SparkML
+ *
+ * JPMML-SparkML is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * JPMML-SparkML is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with JPMML-SparkML.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package org.jpmml.sparkml.feature;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import org.apache.spark.ml.feature.Bucketizer;
+import org.dmg.pmml.DataType;
+import org.dmg.pmml.DerivedField;
+import org.dmg.pmml.Discretize;
+import org.dmg.pmml.DiscretizeBin;
+import org.dmg.pmml.Interval;
+import org.dmg.pmml.OpType;
+import org.jpmml.converter.ContinuousFeature;
+import org.jpmml.converter.Feature;
+import org.jpmml.converter.ListFeature;
+import org.jpmml.sparkml.FeatureConverter;
+import org.jpmml.sparkml.FeatureMapper;
+
+public class BucketizerConverter extends FeatureConverter&lt;Bucketizer&gt; {
+
+	public BucketizerConverter(Bucketizer transformer){
+<span class="fc" id="L41">		super(transformer);</span>
+<span class="fc" id="L42">	}</span>
+
+	@Override
+	public List&lt;Feature&gt; encodeFeatures(FeatureMapper featureMapper){
+<span class="fc" id="L46">		Bucketizer transformer = getTransformer();</span>
+
+<span class="fc" id="L48">		ContinuousFeature inputFeature = (ContinuousFeature)featureMapper.getOnlyFeature(transformer.getInputCol());</span>
+
+<span class="fc" id="L50">		Discretize discretize = new Discretize(inputFeature.getName());</span>
+
+<span class="fc" id="L52">		List&lt;String&gt; categories = new ArrayList&lt;&gt;();</span>
+
+<span class="fc" id="L54">		double[] splits = transformer.getSplits();</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">		for(int i = 0; i &lt; (splits.length - 1); i++){</span>
+<span class="fc" id="L56">			String category = String.valueOf(i);</span>
+
+<span class="fc" id="L58">			categories.add(category);</span>
+
+<span class="fc bfc" id="L60" title="All 2 branches covered.">			Interval interval = new Interval((i &lt; (splits.length - 2)) ? Interval.Closure.CLOSED_OPEN : Interval.Closure.CLOSED_CLOSED)</span>
+<span class="fc" id="L61">				.setLeftMargin(formatMargin(splits[i]))</span>
+<span class="fc" id="L62">				.setRightMargin(formatMargin(splits[i + 1]));</span>
+
+<span class="fc" id="L64">			DiscretizeBin discretizeBin = new DiscretizeBin(category, interval);</span>
+
+<span class="fc" id="L66">			discretize.addDiscretizeBins(discretizeBin);</span>
+		}
+
+<span class="fc" id="L69">		DerivedField derivedField = featureMapper.createDerivedField(formatName(transformer), OpType.CONTINUOUS, DataType.INTEGER, discretize);</span>
+
+<span class="fc" id="L71">		Feature feature = new ListFeature(derivedField, categories);</span>
+
+<span class="fc" id="L73">		return Collections.singletonList(feature);</span>
+	}
+
+	static
+	private Double formatMargin(double value){
+
+<span class="fc bfc" id="L79" title="All 2 branches covered.">		if(Double.isInfinite(value)){</span>
+<span class="fc" id="L80">			return null;</span>
+		}
+
+<span class="fc" id="L83">		return value;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

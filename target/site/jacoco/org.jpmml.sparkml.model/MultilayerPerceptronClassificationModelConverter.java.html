@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MultilayerPerceptronClassificationModelConverter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JPMML-SparkML</a> &gt; <a href="index.source.html" class="el_package">org.jpmml.sparkml.model</a> &gt; <span class="el_source">MultilayerPerceptronClassificationModelConverter.java</span></div><h1>MultilayerPerceptronClassificationModelConverter.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2016 Villu Ruusmann
+ *
+ * This file is part of JPMML-SparkML
+ *
+ * JPMML-SparkML is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * JPMML-SparkML is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with JPMML-SparkML.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package org.jpmml.sparkml.model;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.spark.ml.classification.MultilayerPerceptronClassificationModel;
+import org.apache.spark.ml.linalg.Vector;
+import org.dmg.pmml.DataType;
+import org.dmg.pmml.DerivedField;
+import org.dmg.pmml.Entity;
+import org.dmg.pmml.FieldName;
+import org.dmg.pmml.FieldRef;
+import org.dmg.pmml.MiningFunction;
+import org.dmg.pmml.NormDiscrete;
+import org.dmg.pmml.OpType;
+import org.dmg.pmml.neural_network.Connection;
+import org.dmg.pmml.neural_network.NeuralInput;
+import org.dmg.pmml.neural_network.NeuralInputs;
+import org.dmg.pmml.neural_network.NeuralLayer;
+import org.dmg.pmml.neural_network.NeuralNetwork;
+import org.dmg.pmml.neural_network.NeuralOutput;
+import org.dmg.pmml.neural_network.NeuralOutputs;
+import org.dmg.pmml.neural_network.Neuron;
+import org.jpmml.converter.BinaryFeature;
+import org.jpmml.converter.ContinuousFeature;
+import org.jpmml.converter.Feature;
+import org.jpmml.converter.ModelUtil;
+import org.jpmml.converter.Schema;
+import org.jpmml.sparkml.ClassificationModelConverter;
+
+public class MultilayerPerceptronClassificationModelConverter extends ClassificationModelConverter&lt;MultilayerPerceptronClassificationModel&gt; {
+
+	public MultilayerPerceptronClassificationModelConverter(MultilayerPerceptronClassificationModel model){
+<span class="fc" id="L52">		super(model);</span>
+<span class="fc" id="L53">	}</span>
+
+	@Override
+	public NeuralNetwork encodeModel(Schema schema){
+<span class="fc" id="L57">		MultilayerPerceptronClassificationModel model = getTransformer();</span>
+
+<span class="fc" id="L59">		int[] layers = model.layers();</span>
+<span class="fc" id="L60">		Vector weights = model.weights();</span>
+
+<span class="fc" id="L62">		List&lt;Feature&gt; features = schema.getFeatures();</span>
+<span class="pc bpc" id="L63" title="1 of 2 branches missed.">		if(features.size() != layers[0]){</span>
+<span class="nc" id="L64">			throw new IllegalArgumentException();</span>
+		}
+
+<span class="fc" id="L67">		FieldName targetField = schema.getTargetField();</span>
+
+<span class="fc" id="L69">		List&lt;String&gt; targetCategories = schema.getTargetCategories();</span>
+<span class="pc bpc" id="L70" title="1 of 2 branches missed.">		if(targetCategories.size() != layers[layers.length - 1]){</span>
+<span class="nc" id="L71">			throw new IllegalArgumentException();</span>
+		}
+
+<span class="fc" id="L74">		NeuralInputs neuralInputs = new NeuralInputs();</span>
+
+<span class="fc bfc" id="L76" title="All 2 branches covered.">		for(int column = 0; column &lt; features.size(); column++){</span>
+<span class="fc" id="L77">			Feature feature = features.get(column);</span>
+
+<span class="fc" id="L79">			DerivedField derivedField = new DerivedField(OpType.CONTINUOUS, DataType.DOUBLE);</span>
+
+<span class="fc bfc" id="L81" title="All 2 branches covered.">			if(feature instanceof ContinuousFeature){</span>
+<span class="fc" id="L82">				ContinuousFeature continuousFeature = (ContinuousFeature)feature;</span>
+
+<span class="fc" id="L84">				derivedField.setExpression(new FieldRef(continuousFeature.getName()));</span>
+<span class="fc" id="L85">			} else</span>
+
+<span class="pc bpc" id="L87" title="1 of 2 branches missed.">			if(feature instanceof BinaryFeature){</span>
+<span class="fc" id="L88">				BinaryFeature binaryFeature = (BinaryFeature)feature;</span>
+
+<span class="fc" id="L90">				derivedField.setExpression(new NormDiscrete(binaryFeature.getName(), binaryFeature.getValue()));</span>
+<span class="fc" id="L91">			} else</span>
+
+			{
+<span class="nc" id="L94">				throw new IllegalArgumentException();</span>
+			}
+
+<span class="fc" id="L97">			NeuralInput neuralInput = new NeuralInput()</span>
+<span class="fc" id="L98">				.setId(&quot;0/&quot; + String.valueOf(column + 1))</span>
+<span class="fc" id="L99">				.setDerivedField(derivedField);</span>
+
+<span class="fc" id="L101">			neuralInputs.addNeuralInputs(neuralInput);</span>
+		}
+
+<span class="fc" id="L104">		List&lt;? extends Entity&gt; entities = neuralInputs.getNeuralInputs();</span>
+
+<span class="fc" id="L106">		List&lt;NeuralLayer&gt; neuralLayers = new ArrayList&lt;&gt;();</span>
+
+<span class="fc" id="L108">		int weightPos = 0;</span>
+
+<span class="fc bfc" id="L110" title="All 2 branches covered.">		for(int i = 1; i &lt; layers.length; i++){</span>
+<span class="fc" id="L111">			List&lt;Neuron&gt; neurons = new ArrayList&lt;&gt;();</span>
+
+<span class="fc" id="L113">			int rows = entities.size();</span>
+<span class="fc" id="L114">			int columns = layers[i];</span>
+
+<span class="fc bfc" id="L116" title="All 2 branches covered.">			for(int column = 0; column &lt; columns; column++){</span>
+<span class="fc" id="L117">				Neuron neuron = new Neuron()</span>
+<span class="fc" id="L118">					.setId(i + &quot;/&quot; + String.valueOf(column + 1));</span>
+
+<span class="fc bfc" id="L120" title="All 2 branches covered.">				for(int row = 0; row &lt; rows; row++){</span>
+<span class="fc" id="L121">					Entity entity = entities.get(row);</span>
+
+<span class="fc" id="L123">					Connection connection = new Connection()</span>
+<span class="fc" id="L124">						.setFrom(entity.getId())</span>
+<span class="fc" id="L125">						.setWeight(weights.apply(weightPos + (row * columns) + column));</span>
+
+<span class="fc" id="L127">					neuron.addConnections(connection);</span>
+				}
+
+<span class="fc" id="L130">				neurons.add(neuron);</span>
+			}
+
+<span class="fc" id="L133">			weightPos += (rows * columns);</span>
+
+<span class="fc bfc" id="L135" title="All 2 branches covered.">			for(Neuron neuron : neurons){</span>
+<span class="fc" id="L136">				neuron.setBias(weights.apply(weightPos));</span>
+
+<span class="fc" id="L138">				weightPos++;</span>
+<span class="fc" id="L139">			}</span>
+
+<span class="fc" id="L141">			NeuralLayer neuralLayer = new NeuralLayer(neurons);</span>
+
+<span class="fc bfc" id="L143" title="All 2 branches covered.">			if(i == (layers.length - 1)){</span>
+<span class="fc" id="L144">				neuralLayer</span>
+<span class="fc" id="L145">					.setActivationFunction(NeuralNetwork.ActivationFunction.IDENTITY)</span>
+<span class="fc" id="L146">					.setNormalizationMethod(NeuralNetwork.NormalizationMethod.SOFTMAX);</span>
+			}
+
+<span class="fc" id="L149">			neuralLayers.add(neuralLayer);</span>
+
+<span class="fc" id="L151">			entities = neurons;</span>
+		}
+
+<span class="pc bpc" id="L154" title="1 of 2 branches missed.">		if(weightPos != weights.size()){</span>
+<span class="nc" id="L155">			throw new IllegalArgumentException();</span>
+		}
+
+<span class="fc" id="L158">		NeuralOutputs neuralOutputs = new NeuralOutputs();</span>
+
+<span class="fc bfc" id="L160" title="All 2 branches covered.">		for(int column = 0; column &lt; targetCategories.size(); column++){</span>
+<span class="fc" id="L161">			String targetCategory = targetCategories.get(column);</span>
+
+<span class="fc" id="L163">			Entity entity = entities.get(column);</span>
+
+<span class="fc" id="L165">			DerivedField derivedField = new DerivedField(OpType.CATEGORICAL, DataType.STRING)</span>
+<span class="fc" id="L166">				.setExpression(new NormDiscrete(targetField, targetCategory));</span>
+
+<span class="fc" id="L168">			NeuralOutput neuralOutput = new NeuralOutput()</span>
+<span class="fc" id="L169">				.setOutputNeuron(entity.getId())</span>
+<span class="fc" id="L170">				.setDerivedField(derivedField);</span>
+
+<span class="fc" id="L172">			neuralOutputs.addNeuralOutputs(neuralOutput);</span>
+		}
+
+<span class="fc" id="L175">		NeuralNetwork neuralNetwork = new NeuralNetwork(MiningFunction.CLASSIFICATION, NeuralNetwork.ActivationFunction.LOGISTIC, ModelUtil.createMiningSchema(schema), neuralInputs, neuralLayers)</span>
+<span class="fc" id="L176">			.setNeuralOutputs(neuralOutputs)</span>
+<span class="fc" id="L177">			.setOutput(ModelUtil.createProbabilityOutput(schema));</span>
+
+<span class="fc" id="L179">		return neuralNetwork;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>
