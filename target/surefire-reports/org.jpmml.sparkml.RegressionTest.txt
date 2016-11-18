@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: org.jpmml.sparkml.RegressionTest
 -------------------------------------------------------------------------------
-Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.932 sec - in org.jpmml.sparkml.RegressionTest
+Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.762 sec - in org.jpmml.sparkml.RegressionTest

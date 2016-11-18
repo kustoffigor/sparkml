@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" name="org.jpmml.sparkml.ClassificationTest" time="1.322" tests="9" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" name="org.jpmml.sparkml.ClassificationTest" time="1.203" tests="9" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
     <property name="sun.boot.library.path" value="/opt/icedtea-bin-3.1.0/jre/lib/amd64"/>
@@ -58,13 +58,13 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="sun.cpu.isalist" value=""/>
   </properties>
-  <testcase name="evaluateDecisionTreeAudit" classname="org.jpmml.sparkml.ClassificationTest" time="0.098"/>
-  <testcase name="evaluateDecisionTreeIris" classname="org.jpmml.sparkml.ClassificationTest" time="0.057"/>
-  <testcase name="evaluateGBTAudit" classname="org.jpmml.sparkml.ClassificationTest" time="0.242"/>
-  <testcase name="evaluateGLMAudit" classname="org.jpmml.sparkml.ClassificationTest" time="0.109"/>
+  <testcase name="evaluateDecisionTreeAudit" classname="org.jpmml.sparkml.ClassificationTest" time="0.08"/>
+  <testcase name="evaluateDecisionTreeIris" classname="org.jpmml.sparkml.ClassificationTest" time="0.046"/>
+  <testcase name="evaluateGBTAudit" classname="org.jpmml.sparkml.ClassificationTest" time="0.22"/>
+  <testcase name="evaluateGLMAudit" classname="org.jpmml.sparkml.ClassificationTest" time="0.062"/>
   <testcase name="evaluateRandomForestIris" classname="org.jpmml.sparkml.ClassificationTest" time="0.029"/>
-  <testcase name="evaluateNeuralNetworkAudit" classname="org.jpmml.sparkml.ClassificationTest" time="0.554"/>
-  <testcase name="evaluateLogisticRegressionAudit" classname="org.jpmml.sparkml.ClassificationTest" time="0.087"/>
-  <testcase name="evaluateNeuralNetworkIris" classname="org.jpmml.sparkml.ClassificationTest" time="0.02"/>
+  <testcase name="evaluateNeuralNetworkAudit" classname="org.jpmml.sparkml.ClassificationTest" time="0.549"/>
+  <testcase name="evaluateLogisticRegressionAudit" classname="org.jpmml.sparkml.ClassificationTest" time="0.074"/>
+  <testcase name="evaluateNeuralNetworkIris" classname="org.jpmml.sparkml.ClassificationTest" time="0.012"/>
   <testcase name="evaluateRandomForestAudit" classname="org.jpmml.sparkml.ClassificationTest" time="0.124"/>
 </testsuite>

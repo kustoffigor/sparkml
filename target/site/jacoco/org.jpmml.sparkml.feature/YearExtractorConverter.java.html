@@ -20,14 +20,16 @@ public class YearExtractorConverter extends FeatureConverter&lt;YearExtractor&gt
 <span class="nc" id="L20">        super(transformer);</span>
 <span class="nc" id="L21">    }</span>
 
+
+
     @Override
     public List&lt;Feature&gt; encodeFeatures(FeatureMapper featureMapper){
-<span class="nc" id="L25">        YearExtractor transformer = getTransformer();</span>
-<span class="nc" id="L26">        Feature inputFeature = featureMapper.getOnlyFeature(&quot;trans_date&quot;);</span>
-<span class="nc" id="L27">        Apply apply = PMMLUtil.createApply(&quot;formatDateTime&quot;, inputFeature.ref(), PMMLUtil.createConstant(&quot;%y&quot;));</span>
-<span class="nc" id="L28">        DerivedField derivedField = featureMapper.createDerivedField(formatName(transformer), OpType.ORDINAL, DataType.INTEGER, apply);</span>
-<span class="nc" id="L29">        Feature feature = new ContinuousFeature(derivedField);</span>
-<span class="nc" id="L30">        return Collections.singletonList(feature);</span>
+<span class="nc" id="L27">        YearExtractor transformer = getTransformer();</span>
+<span class="nc" id="L28">        Feature inputFeature = featureMapper.getOnlyFeature(transformer.getInputCol());</span>
+<span class="nc" id="L29">        Apply apply = PMMLUtil.createApply(&quot;formatDateTime&quot;, inputFeature.ref(), PMMLUtil.createConstant(&quot;%y&quot;));</span>
+<span class="nc" id="L30">        DerivedField derivedField = featureMapper.createDerivedField(formatName(transformer), OpType.ORDINAL, DataType.INTEGER, apply);</span>
+<span class="nc" id="L31">        Feature feature = new ContinuousFeature(derivedField);</span>
+<span class="nc" id="L32">        return Collections.singletonList(feature);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

@@ -1,4 +1,5 @@
 /home/ikustov/jpmml-sparkml/src/main/java/org/jpmml/sparkml/model/GBTRegressionModelConverter.java
+/home/ikustov/jpmml-sparkml/src/main/java/org/jpmml/sparkml/feature/HourExtractorConverter.java
 /home/ikustov/jpmml-sparkml/src/main/java/org/jpmml/sparkml/model/RandomForestRegressionModelConverter.java
 /home/ikustov/jpmml-sparkml/src/main/java/org/jpmml/sparkml/RegressionModelConverter.java
 /home/ikustov/jpmml-sparkml/src/main/java/org/jpmml/sparkml/model/DecisionTreeClassificationModelConverter.java
@@ -23,12 +24,15 @@
 /home/ikustov/jpmml-sparkml/src/main/java/org/jpmml/sparkml/model/DecisionTreeRegressionModelConverter.java
 /home/ikustov/jpmml-sparkml/src/main/java/org/jpmml/sparkml/feature/BinarizerConverter.java
 /home/ikustov/jpmml-sparkml/src/main/java/org/jpmml/sparkml/model/KMeansModelConverter.java
+/home/ikustov/jpmml-sparkml/src/main/java/org/jpmml/sparkml/feature/MinuteExtractorConverter.java
 /home/ikustov/jpmml-sparkml/src/main/java/org/jpmml/sparkml/model/GBTClassificationModelConverter.java
 /home/ikustov/jpmml-sparkml/src/main/java/org/jpmml/sparkml/feature/OneHotEncoderConverter.java
 /home/ikustov/jpmml-sparkml/src/main/java/org/jpmml/sparkml/TransformerConverter.java
+/home/ikustov/jpmml-sparkml/src/main/java/org/jpmml/sparkml/feature/DayExtractorConverter.java
 /home/ikustov/jpmml-sparkml/src/main/java/org/jpmml/sparkml/model/GeneralizedLinearRegressionModelConverter.java
 /home/ikustov/jpmml-sparkml/src/main/java/org/jpmml/sparkml/BooleanFeature.java
 /home/ikustov/jpmml-sparkml/src/main/java/org/jpmml/sparkml/model/TreeModelUtil.java
+/home/ikustov/jpmml-sparkml/src/main/java/org/jpmml/sparkml/feature/MonthExtractorConverter.java
 /home/ikustov/jpmml-sparkml/src/main/java/org/jpmml/sparkml/feature/IndexToStringConverter.java
 /home/ikustov/jpmml-sparkml/src/main/java/org/jpmml/sparkml/model/RandomForestClassificationModelConverter.java
 /home/ikustov/jpmml-sparkml/src/main/java/org/jpmml/sparkml/feature/BucketizerConverter.java

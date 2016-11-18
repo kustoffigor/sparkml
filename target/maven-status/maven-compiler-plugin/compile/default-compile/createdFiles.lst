@@ -1,4 +1,5 @@
 org/jpmml/sparkml/feature/IndexToStringConverter.class
+org/jpmml/sparkml/feature/DayExtractorConverter.class
 org/jpmml/sparkml/ModelConverter.class
 org/jpmml/sparkml/feature/StandardScalerModelConverter.class
 org/jpmml/sparkml/model/DecisionTreeRegressionModelConverter.class
@@ -6,6 +7,7 @@ org/jpmml/sparkml/feature/VectorSlicerConverter.class
 org/jpmml/sparkml/model/KMeansModelConverter.class
 org/jpmml/sparkml/feature/VectorAssemblerConverter.class
 org/jpmml/sparkml/feature/YearExtractorConverter.class
+org/jpmml/sparkml/feature/MinuteExtractorConverter.class
 org/jpmml/sparkml/feature/BinarizerConverter.class
 org/jpmml/sparkml/feature/VectorAttributeRewriterConverter.class
 org/jpmml/sparkml/feature/RFormulaModelConverter.class
@@ -36,9 +38,11 @@ org/jpmml/sparkml/model/GBTClassificationModelConverter.class
 org/jpmml/sparkml/feature/ColumnPrunerConverter.class
 org/jpmml/sparkml/FeatureConverter.class
 org/jpmml/sparkml/feature/PCAModelConverter.class
+org/jpmml/sparkml/feature/MonthExtractorConverter.class
 org/jpmml/sparkml/feature/StringIndexerModelConverter.class
 org/jpmml/sparkml/model/LinearRegressionModelConverter.class
 org/jpmml/sparkml/model/MultilayerPerceptronClassificationModelConverter.class
 org/jpmml/sparkml/TransformerConverter.class
+org/jpmml/sparkml/feature/HourExtractorConverter.class
 org/jpmml/sparkml/Main.class
 org/jpmml/sparkml/FeatureMapper.class

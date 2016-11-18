@@ -34,12 +34,7 @@ import org.apache.spark.ml.param.shared.HasFeaturesCol;
 import org.apache.spark.ml.param.shared.HasLabelCol;
 import org.apache.spark.ml.param.shared.HasOutputCol;
 import org.apache.spark.ml.param.shared.HasPredictionCol;
-import org.apache.spark.sql.types.BooleanType;
-import org.apache.spark.sql.types.DoubleType;
-import org.apache.spark.sql.types.IntegralType;
-import org.apache.spark.sql.types.StringType;
-import org.apache.spark.sql.types.StructField;
-import org.apache.spark.sql.types.StructType;
+import org.apache.spark.sql.types.*;
 import org.dmg.pmml.DataField;
 import org.dmg.pmml.DataType;
 import org.dmg.pmml.FieldName;
@@ -242,6 +237,9 @@ public class FeatureMapper extends PMMLMapper {
 				case BOOLEAN:
 					feature = new BooleanFeature(dataField);
 					break;
+				case DATE:
+					feature = new ContinuousFeature(dataField);
+					break;
 				default:
 					throw new IllegalArgumentException();
 			}
@@ -295,6 +293,11 @@ public class FeatureMapper extends PMMLMapper {
 			return createDataField(name, OpType.CATEGORICAL, DataType.BOOLEAN);
 		} else
 
+		if (sparkDataType instanceof TimestampType) {
+				return createDataField(name, OpType.CONTINUOUS, DataType.DATE);
+			}
+
+		else
 		{
 			throw new IllegalArgumentException("Expected string, integral, double or boolean type, got " + sparkDataType.typeName() + " type");
 		}

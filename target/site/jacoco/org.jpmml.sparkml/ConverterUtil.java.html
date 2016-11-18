@@ -28,7 +28,7 @@ import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
-import com.antifraud.YearExtractor;
+import com.antifraud.*;
 import com.google.common.collect.Iterables;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.spark.ml.PipelineModel;
@@ -278,19 +278,23 @@ public class ConverterUtil {
 <span class="fc" id="L278">		converters.put(VectorIndexerModel.class, VectorIndexerModelConverter.class);</span>
 <span class="fc" id="L279">		converters.put(VectorSlicer.class, VectorSlicerConverter.class);</span>
 <span class="fc" id="L280">		converters.put(YearExtractor.class, YearExtractorConverter.class);</span>
+<span class="fc" id="L281">		converters.put(MonthExtractor.class, MonthExtractorConverter.class);</span>
+<span class="fc" id="L282">		converters.put(DayExtractor.class, DayExtractorConverter.class);</span>
+<span class="fc" id="L283">		converters.put(HourExtractor.class, HourExtractorConverter.class);</span>
+<span class="fc" id="L284">		converters.put(MinuteExtractor.class, MinuteExtractorConverter.class);</span>
 
 		// Models
-<span class="fc" id="L283">		converters.put(DecisionTreeClassificationModel.class, DecisionTreeClassificationModelConverter.class);</span>
-<span class="fc" id="L284">		converters.put(DecisionTreeRegressionModel.class, DecisionTreeRegressionModelConverter.class);</span>
-<span class="fc" id="L285">		converters.put(GBTClassificationModel.class, GBTClassificationModelConverter.class);</span>
-<span class="fc" id="L286">		converters.put(GBTRegressionModel.class, GBTRegressionModelConverter.class);</span>
-<span class="fc" id="L287">		converters.put(GeneralizedLinearRegressionModel.class, GeneralizedLinearRegressionModelConverter.class);</span>
-<span class="fc" id="L288">		converters.put(KMeansModel.class, KMeansModelConverter.class);</span>
-<span class="fc" id="L289">		converters.put(LinearRegressionModel.class, LinearRegressionModelConverter.class);</span>
-<span class="fc" id="L290">		converters.put(LogisticRegressionModel.class, LogisticRegressionModelConverter.class);</span>
-<span class="fc" id="L291">		converters.put(MultilayerPerceptronClassificationModel.class, MultilayerPerceptronClassificationModelConverter.class);</span>
-<span class="fc" id="L292">		converters.put(RandomForestClassificationModel.class, RandomForestClassificationModelConverter.class);</span>
-<span class="fc" id="L293">		converters.put(RandomForestRegressionModel.class, RandomForestRegressionModelConverter.class);</span>
-<span class="fc" id="L294">	}</span>
+<span class="fc" id="L287">		converters.put(DecisionTreeClassificationModel.class, DecisionTreeClassificationModelConverter.class);</span>
+<span class="fc" id="L288">		converters.put(DecisionTreeRegressionModel.class, DecisionTreeRegressionModelConverter.class);</span>
+<span class="fc" id="L289">		converters.put(GBTClassificationModel.class, GBTClassificationModelConverter.class);</span>
+<span class="fc" id="L290">		converters.put(GBTRegressionModel.class, GBTRegressionModelConverter.class);</span>
+<span class="fc" id="L291">		converters.put(GeneralizedLinearRegressionModel.class, GeneralizedLinearRegressionModelConverter.class);</span>
+<span class="fc" id="L292">		converters.put(KMeansModel.class, KMeansModelConverter.class);</span>
+<span class="fc" id="L293">		converters.put(LinearRegressionModel.class, LinearRegressionModelConverter.class);</span>
+<span class="fc" id="L294">		converters.put(LogisticRegressionModel.class, LogisticRegressionModelConverter.class);</span>
+<span class="fc" id="L295">		converters.put(MultilayerPerceptronClassificationModel.class, MultilayerPerceptronClassificationModelConverter.class);</span>
+<span class="fc" id="L296">		converters.put(RandomForestClassificationModel.class, RandomForestClassificationModelConverter.class);</span>
+<span class="fc" id="L297">		converters.put(RandomForestRegressionModel.class, RandomForestRegressionModelConverter.class);</span>
+<span class="fc" id="L298">	}</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

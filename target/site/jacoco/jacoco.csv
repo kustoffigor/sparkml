@@ -15,21 +15,25 @@ JPMML-SparkML,org.jpmml.sparkml.model,GeneralizedLinearRegressionModelConverter,
 JPMML-SparkML,org.jpmml.sparkml.model,RandomForestRegressionModelConverter,0,25,0,0,0,7,0,2,0,2
 JPMML-SparkML,org.jpmml.sparkml.model,LogisticRegressionModelConverter,4,63,1,1,1,14,1,2,0,2
 JPMML-SparkML,org.jpmml.sparkml.feature,BinarizerConverter,0,85,0,0,0,11,0,2,0,2
-JPMML-SparkML,org.jpmml.sparkml.feature,YearExtractorConverter,43,0,0,0,8,0,2,0,2,0
+JPMML-SparkML,org.jpmml.sparkml.feature,YearExtractorConverter,44,0,0,0,8,0,2,0,2,0
 JPMML-SparkML,org.jpmml.sparkml.feature,StandardScalerModelConverter,8,129,8,10,2,24,8,3,0,2
 JPMML-SparkML,org.jpmml.sparkml.feature,RFormulaModelConverter,0,67,1,5,0,15,1,4,0,2
+JPMML-SparkML,org.jpmml.sparkml.feature,MonthExtractorConverter,44,0,0,0,8,0,2,0,2,0
 JPMML-SparkML,org.jpmml.sparkml.feature,StringIndexerModelConverter,0,32,0,0,0,8,0,2,0,2
 JPMML-SparkML,org.jpmml.sparkml.feature,OneHotEncoderConverter,8,63,2,4,1,16,2,3,0,2
 JPMML-SparkML,org.jpmml.sparkml.feature,ColumnPrunerConverter,0,6,0,0,0,3,0,2,0,2
 JPMML-SparkML,org.jpmml.sparkml.feature,IndexToStringConverter,0,40,2,2,0,10,2,2,0,2
+JPMML-SparkML,org.jpmml.sparkml.feature,HourExtractorConverter,44,0,0,0,8,0,2,0,2,0
 JPMML-SparkML,org.jpmml.sparkml.feature,ChiSqSelectorModelConverter,0,15,0,0,0,4,0,2,0,2
 JPMML-SparkML,org.jpmml.sparkml.feature,VectorSlicerConverter,4,23,2,2,1,6,2,2,0,2
 JPMML-SparkML,org.jpmml.sparkml.feature,VectorIndexerModelConverter.new Comparator() {...},0,11,0,0,0,2,0,2,0,2
 JPMML-SparkML,org.jpmml.sparkml.feature,VectorIndexerModelConverter,4,197,1,7,1,39,1,6,0,3
+JPMML-SparkML,org.jpmml.sparkml.feature,MinuteExtractorConverter,44,0,0,0,8,0,2,0,2,0
 JPMML-SparkML,org.jpmml.sparkml.feature,MinMaxScalerModelConverter,38,122,4,6,4,22,4,3,0,2
 JPMML-SparkML,org.jpmml.sparkml.feature,VectorAssemblerConverter,0,41,0,2,0,9,0,3,0,2
 JPMML-SparkML,org.jpmml.sparkml.feature,BucketizerConverter,0,109,0,6,0,21,0,6,0,3
 JPMML-SparkML,org.jpmml.sparkml.feature,VectorAttributeRewriterConverter,0,6,0,0,0,3,0,2,0,2
+JPMML-SparkML,org.jpmml.sparkml.feature,DayExtractorConverter,44,0,0,0,8,0,2,0,2,0
 JPMML-SparkML,org.jpmml.sparkml.feature,PCAModelConverter,4,107,2,6,1,20,2,4,0,2
 JPMML-SparkML,org.jpmml.sparkml,ConverterUtil.new Object() {...},2,17,0,0,0,1,0,1,0,1
 JPMML-SparkML,org.jpmml.sparkml,FeatureConverter,0,25,0,0,0,4,0,3,0,3
@@ -39,7 +43,7 @@ JPMML-SparkML,org.jpmml.sparkml,BooleanFeature,0,15,0,0,0,2,0,1,0,1
 JPMML-SparkML,org.jpmml.sparkml,ModelConverter,0,4,0,0,0,2,0,1,0,1
 JPMML-SparkML,org.jpmml.sparkml,TransformerUtil,18,64,2,2,6,8,3,2,1,2
 JPMML-SparkML,org.jpmml.sparkml,ClassificationModelConverter,0,27,0,0,0,7,0,3,0,3
-JPMML-SparkML,org.jpmml.sparkml,ConverterUtil,68,394,6,18,18,94,10,11,4,5
+JPMML-SparkML,org.jpmml.sparkml,ConverterUtil,68,414,6,18,18,98,10,11,4,5
 JPMML-SparkML,org.jpmml.sparkml,Main,206,0,18,0,43,0,19,0,10,0
-JPMML-SparkML,org.jpmml.sparkml,FeatureMapper.new Object() {...},6,45,0,0,0,2,0,1,0,1
-JPMML-SparkML,org.jpmml.sparkml,FeatureMapper,108,366,17,36,17,106,15,27,0,14
+JPMML-SparkML,org.jpmml.sparkml,FeatureMapper.new Object() {...},7,51,0,0,0,2,0,1,0,1
+JPMML-SparkML,org.jpmml.sparkml,FeatureMapper,123,366,20,36,21,106,17,27,0,14

@@ -28,7 +28,7 @@ import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
-import com.antifraud.YearExtractor;
+import com.antifraud.*;
 import com.google.common.collect.Iterables;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.spark.ml.PipelineModel;
@@ -278,6 +278,10 @@ public class ConverterUtil {
 		converters.put(VectorIndexerModel.class, VectorIndexerModelConverter.class);
 		converters.put(VectorSlicer.class, VectorSlicerConverter.class);
 		converters.put(YearExtractor.class, YearExtractorConverter.class);
+		converters.put(MonthExtractor.class, MonthExtractorConverter.class);
+		converters.put(DayExtractor.class, DayExtractorConverter.class);
+		converters.put(HourExtractor.class, HourExtractorConverter.class);
+		converters.put(MinuteExtractor.class, MinuteExtractorConverter.class);
 
 		// Models
 		converters.put(DecisionTreeClassificationModel.class, DecisionTreeClassificationModelConverter.class);
