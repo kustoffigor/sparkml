@@ -294,7 +294,7 @@ public class FeatureMapper extends PMMLMapper {
 		} else
 
 		if (sparkDataType instanceof TimestampType) {
-				return createDataField(name, OpType.CONTINUOUS, DataType.DATE);
+				return createDataField(name, OpType.CONTINUOUS, DataType.DATE_TIME);
 			}
 
 		else
